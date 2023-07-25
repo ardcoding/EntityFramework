@@ -18,6 +18,25 @@ namespace EntityFrameworkProject
             }
         }
 
+        public static void DeleteOrder()
+        {
+            using (var GlobalContext = new GlobalContext())
+            {
+                Customer customer = GlobalContext.Customers.Find("C1");
+                GlobalContext.Customers.Remove(customer);
+            }
+        }
+
+        public static void UpdateOrder()
+        {
+            using (var GlobalContext = new GlobalContext())
+            {
+                Customer customer = GlobalContext.Customers.Find("C1");
+                customer.CustomerName = "Rüchan"
+                GlobalContext.SaveChanges();
+            }
+        }
+
         public static void addOrder()
         {
             using (var GlobalContext = new GlobalContext())
