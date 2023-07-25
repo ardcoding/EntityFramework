@@ -6,13 +6,16 @@ using System.Threading.Tasks;
 
 namespace EntityFrameworkProject.Entities
 {
-    public class Customer
+    public class Customer //Kolonlar Entity içinde propertylerle oluşturulur. Customer Entitysinin propertyleri aşağıda gördüğümüz gibi CustomerId, CustomerName, ShoppingScore ve PhoneNumber'dır.
+                          //Customers Tablomuzun Entitysi tekil yani Customer olarak isimlendirilmiştir.
     {
         public Customer()
         {
             Orders = new List<Order>();
         }
-        public string CustomerId { get; set; }
+        public string CustomerId { get; set; } //EF Core ile geliştirme yapıyorsak her tabloda mutlaka bir Private Key olmalıdır. Eğer bu private keyi tanımlamazsak hata alırız.
+                                               //Ancak private key tanımlamadan da tablo oluşturmanın yolları vardır.
+                                               //EF Core Id, ID, <Entityİsmi>Id yani bu örnekte CustomerId yada CustomerID ile tanımlanmış propertyleri default olarak private key kabul eder.
         public string CustomerName { get; set; }
         public int ShoppingScore { get; set; }
         public string PhoneNumber { get; set; }
