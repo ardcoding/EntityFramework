@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿using System;
 using EntityFrameworkProject.Context;
 using EntityFrameworkProject.Entities;
@@ -201,6 +202,161 @@ Sorgu neticisinde gelen verilerden en sonuncusunu getirir. Veri gelmiyorsa hata 
 LastOrDefaultAsync
 Bu fonksiyonu kullanabilmek için mutlaka OrderBy fonksiyonu kullanılmalıdır.
 Sorgu neticisinde gelen verilerden en sonuncusunu getirir. Veri gelmiyorsa null döndürür.
+
+CountAsync
+Sorgunun execute edilmesiyle gelen satırların sayısını integer olarak döndürü.
+Sorguyu execute ettikten sonra çalıştırmak daha fazla maaliyete sebep olacaktır. Bunun yerine sorgu anında kullanmak daha iyidir.
+var customers = await GlobalContext.Customers.CountAsync();
+
+LongCountAsync 
+Aslında CountAsync fonksiyonuyla aynı işi yapar. Ancak geri dönüş değeri olarak integer yerine long değeri döndürür.
+Büyük veri kullanan projeler için kullanılır.
+
+Bu 2 fonksiyonda şart eklenebilir 
+var customers = await GlobalContext.Customers.CountLongAsync( u => u.id == 1);
+
+AnyAsync
+Sorgu sonucunda verinin gelip gelmediğini kontrol eder. Bool değer döndürür.
+var customers = await GlobalContext.Customers.AnyAsync( u=> u.id == 3);
+
+MaxAsync - MinAsync
+Oluşturulan sorguldan belirtilen kolonda değeri en yüksek (maxasync) yada en düşük (minasync) olan değeri döndürür.
+var customers = await GlobalContext.Customers.MaxAsync(u=>u.id);
+
+Distinct
+Tekrar eden kolonları tekrar tekrar göstermek yerine sadece bir kez gösterir.
+var customers = await GlobalContext.Custpmers.Distinct().ToListAsync(); 2 kez ahmet olan tabloda bir kez ahmet getirir.
+
+AllAsync
+Gelen verilerin verilen şarta uyup uymadığını kontrol eder. Bool değer döndürür.
+var customers = GlobalContext.AllAsync(u=>u.id > 0 );
+
+Sum
+Verilen kolondaki verilerin toplamını döndürür.
+
+Average
+Verilen kolondaki verilerin aritmetik ortalamasını döndürür.
+
+Contains - StartsWith - EndsWith
+Like sorgusu gibi çalışır.
+Verilen stringi içeren (contains) yada verilen string eğer o verinin başında (startswith) veya sonunda (endswith) olan verileri döndürür.
+
+ToDictionary
+Gelen verilerin Dictionary formatta kullanmak için bu fonksiyon kullanılır.
+await GlobalContext.Customers.where(u => u.id>1).ToDictionaryAsync();
+
+ToArray
+Gelen verilerin Array formatta kullanmak için bu fonksiyon kullanılır.
+await GlobalContext.Customers.where(u => u.id>1).ToArrayAsync();
+
+Select
+Görmek istediğimiz kolonları seçebilmek için kullanılır.
+2. olarak Gelen verileri farklı türde karşılamayı sağlar.
+await GlobalContext.Customers.Select(u =>  new Customer{
+Name = u.Name
+}).ToListAsync();
+
+SelectMany (INNER JOIN)
+Select ile benzerdir. İlişkisel tablolardan gelen koleksiyonel verileri tekilleştirip kullanmamızı sağlar.
+await GlobalContext.Customers.Select(u => ı.Parcalar (u,p) => new{
+u.Name,
+p.Id
+})
+
+GroupBy
+Gruplandırma yapmak için kullanacağımız fonksiyondur.
+var datas = context.Urunler.GroupBy(u => u.Fiyat).Select(group => new{
+Count = group.Count(),
+Fiyat = group.Key //groupbyda çektiğimiz kolonu temsil ediyor
+}).ToListAsync();
+Bu kodda ürünün fiyatlarını gruplandırır ve hangi fiyattan kaç adet ürün olduğunu gösterir.
+
+ForEach Fonksiyonu
+Foreach döngüsünün fonksiyon halidir.
+Sorgulama sonucu gelen verilerin üzerinde iterasyonel olarak dönmemizi ve işlemler yapmamızı sağlar.
+datas.ForEach(items => {
+    items.Name
+})
+
+
+
+                                        Change Tracker
+
+Context nesnesinden gelen verileri takip eden mekanizmadır. Nesne üzerindeki değişiklikleri takip eder.
+
+    Change Tracker Property
+
+Takip edilen nesnelere erişebilmeyi sağlayan ve gerekirse işlem yapmayı sağlayan propertydir.
+var customers = await GlobalContext.Customers.ToListAsync();
+customers[1].Name = "AHMET"
+var datas = GlobalContext.ChangeTracker.Entries();
+await GlobalContext.SaveChangesAsync();
+
+    Detect Changes
+
+Yapılan değişikliklerin veri tabanına göndermeden kontrol etmek gerekir. SaveChanges bunu otomatik olarak yapar.
+Değişikliklerin algılanmasını opsiyonel olarak gerçekleştirmek için DetectChanges kullanılır.
+var customer = await GlobalContext.Customers.FirstOrDefaultAsync(u=>u.id == 2);
+customer.Name = "A"
+GlobalContext.ChangeTracker.DetectChanges();
+await GlobalContext.SaveChangesAsync();
+
+    AutoDetectChanges
+SaveChanges fonksiyonunun yaptığı otomatik kontrolü kapatıp kendimiz kontrol edebiliriz. Optimizasyon amacıyla yapılır
+
+    Entries Metodu
+Contextneki entrynin koleksiyonek versiyonudur. Her entity bilgisini EntityEntry türünden elde edebiliriz.
+DetectChanges methodunu tetikler.
+Buradaki maliyetten kaçınmak için AutoDetectChangesEnabled özelliğine false değeri verilebilir.
+
+    AcceptAllChanges
+SaveChanges tetiklendiğinde EF Core her şeyin yolunda olduğunu varsayar ve takibi keser.
+Beklenmeyen bir hata olursa nesnelerin takipi bırakıldığı için düzeltme yapılamaz. 
+Bu durumda SaveChanges(false) AcceptAllChanges kullanılır.
+AcceptAllChanges ile takibi manuel olarak keseriz.
+
+    HasChanges
+Nesneler arasında değişikliği kontrol eder.
+DetectChangesi tetikler.
+
+
+
+                                    Entity States
+
+Entity nesnelerinin durumunu ifade eder:
+Detached => Nesnenin takip edilmediğini ifade eder.
+Added => Veri tabanına verinin ekleneceğini ifade eder.
+Modified => Veri tabanındaki verinin güncelleneceğini ifade eder.
+Deleted => Veri tabanındaki verinin silineceğini ifade eder.
+Unchanged => Takip edilen nesnenin herhangi bir işleme uğramadığını ifade eder.
+
+
+                                    Context Nesnesi Üzerinden Change Tracker
+
+GlobalContext.Entry(customer).OriginalValues.GetValue<int>(nameof(Customer.Id)); Güncellenecek nesnenin orjinal halini getirir.
+GlobalContext.Entry(customer).CurrentlValues.GetValue<int>(nameof(Customer.Id)); Nesnenin anlık değerini gösterir.
+GlobalContext.Entry(customer).OriginalValues.GetDatabaseValues<int>(nameof(Customer.Id)); Nesnenin veri tabanındaki değerini gösterir.
+
+
+
+                                   Change Trackerin Interceptor  Olarak Kullanılması
+
+public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+{
+    var entries = ChangeTracker.Entries);
+    foreach (var entry in entries){
+        1f (entry.State == EntityState.Added){
+        
+        }
+    }
+    return base. SaveChangesAsync(cancellationToken);
+}
+
+Veri ekleme, güncelleme gibi işlemleri veri tabanına gönderilmeden önce yapmak istediklerimizi yapabilmeyi sağlar.
+
+-> 27.07.2023
+
+
  */
 
 
