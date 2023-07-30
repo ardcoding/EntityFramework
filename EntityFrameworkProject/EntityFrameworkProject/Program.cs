@@ -354,8 +354,105 @@ public override Task<int> SaveChangesAsync(CancellationToken cancellationToken =
 
 Veri ekleme, güncelleme gibi işlemleri veri tabanına gönderilmeden önce yapmak istediklerimizi yapabilmeyi sağlar.
 
--> 27.07.2023
+-> 27.07.2023 Perşembe
 
+
+
+-> 28.07.2023 Cuma
+                                                     AsNoTracking
+
+ChangeTracker mekanizmasının her nesneyi takip etmesi bir maliyettir. Çok fazla veriyle çalışırken changetracker her bir nesne için ayrı ayrı takip eder.
+Bu da nesne arttıkça maliyeti arttırır. İşlem yapılmayacak verilerin takip edilmesi bize maliyet olarak geri dönecektir.
+AsNoTracking metodu sorgu neticesinde gelecek olan verilerin takip edilmesini engeller. Maliyetten kazanç elde etmiş oluruz
+
+await GlobalContext.Users.AsNoTracking().ToListAsync();
+
+
+    AsNoTrackingWithIdentityResolution
+
+ChangeTracker sayesinde yinelenen veriler aynı  instanceları kullanır ancak AsNoTracking metodu ile yapıları sorgularda yinelenen veriler farklı instancelarda karşılanırlar.
+Tekil instance kullanmayı istiyorsak bu fonksiyonu kullanmalıyız.
+Doğru kullanılmazsa maliyeti düşürmek için kullandığımız bu fonksiyon daha fazla maliyete sebep olabilir.
+İlişkisel verilerle çalışırken dikkat etmemiz gerekir aksi takdirde aynı nesne için ayrı ayrı instance oluşturur. Bu da maliyete neden olur.
+
+await GlobalContext.Customers.Include(c => c.Name).AsNoTrackingWithIdentityResolution().ToListAsync();,
+Maliyet bakımından:
+ChangeTracker > AsNoTrackingOdentityResolution > AsNoTracking
+
+    AsTracking
+
+Tracking mekanizmasını takip etmemizi sağlar. 
+Zaten default olarak takip ederken bu fonksiyonu neden kullanıyoruz? 
++ ChangeTracker mekanizmasını pasife çektiğimiz zaman tekrar devreye sokmak için kullanılır.
+
+await GlobalContext.Customers.AsTracking().ToListAsync();
+
+    UseQueryTrackingBehavior
+
+Configurasyon fonksiyonudur.
+EF Core seviyesinde ilgili contextten gelen verilerin üzerinde ChangeTracker mekanizmasının davranışını temel seviyede belirlememizi sağlar.
+
+optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+
+                                İlişkisel Yapılar
+    Temel Kavramlar
+    
+    Principal Entity
+Kendi başına var olabilen entity'dir.
+Bir veri tabanında depertman kendi başına var olabilir bunu örnek verebiliriz.
+
+    Dependent Entity
+Kendi başına var olamayan entity'dir.
+Çalışan entitysi departman entitysine bağlı olarak var olabilir bu yüzden çalışan entitysi dependent entitydir.
+
+    Foreign Key
+Principal Entity ve Dependent Entity'i bağlayan keydir. Dependent Entityde tanımlanır. Principal keye karşılık gelir.
+
+    Principal Key
+Principal Entitydeki id'dir.
+
+    Navigation Property
+İlişkisel tablolar arasındaki fiziksel erişimi entity classları üzerinden sağlayan properylerdir.
+Bir propertynin navigation property olabilmesi için kesinlikle entity türünden olmalıdır.
+İlişki türlerini ifade ede. (many to many, one to many)
+
+
+class Customer { Principal entitydir. Var olabilmesi için başka entitye ihtiyacı yoktur
+    public int Id { get; set; }, principal key
+    public string Name { get; set; },
+    public string Address { get; set; },
+    public ICollection<Order> Orders { get; set; } navigation property
+}
+
+class Order{ Order dependent entitydir orderın var olabilmesi customera bağlıdır.
+    public int Id { get; set; },
+    public string Address { get; set; },
+    public float Amount { get; set; },
+    public int CustomerId { get; set; } foreign key
+    public Customer Customer { get; set; } navigation property
+}
+    
+    Default Conventions 
+Varsayılan entity kurallarını kullanarak yapılan ilişki yapılandırma yöntemidir.
+Navigation propertyleri kullanarak ilişki şablonlarını çıkartmaktadır.
+
+    Data Annotations Attributes
+Entitynin özelliklerine göre ayarlama yapmamızı sağlayan attributelardır. (key, foreign key)
+
+    Fluent API
+Entity modellerindeki ilişkileri yapılandırırken daha detaylı çalışmamızı sağlar.
+
+HasOne
+İlgili entitynin ilişkisel entitye birebir yada bire çok olacak şekilde ilişkisini yapılandırır.
+
+HasMany
+İlgili entitynin ilişkisel entitye çoka bir yada çoka çok olacak şekilde ilişkisini yapılandırır.
+
+WithOne
+HasOne yada HasMany den sonra birebir yada çoka bir olacak şekilde ilişki yapılandırmasını sağlar
+
+WithMany
+HasOne yada HasMany den sonra bire çok yada çoka çok olacak şekilde ilişki yapılandırmasını sağlar
 
  */
 

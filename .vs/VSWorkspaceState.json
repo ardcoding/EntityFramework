@@ -3,8 +3,9 @@
     "",
     "\\EntityFrameworkProject",
     "\\EntityFrameworkProject\\EntityFrameworkProject",
+    "\\EntityFrameworkProject\\EntityFrameworkProject\\Context",
     "\\EntityFrameworkProject\\EntityFrameworkProject\\Entities"
   ],
-  "SelectedNode": "\\EntityFrameworkProject\\EntityFrameworkProject\\Program.cs",
+  "SelectedNode": "\\EntityFrameworkProject\\EntityFrameworkProject\\Context\\GlobalContext.cs",
   "PreviewInSolutionExplorer": false
 }
