@@ -454,6 +454,91 @@ HasOne yada HasMany den sonra birebir yada çoka bir olacak şekilde ilişki yap
 WithMany
 HasOne yada HasMany den sonra bire çok yada çoka çok olacak şekilde ilişki yapılandırmasını sağlar
 
+-> 28.07.2023 Cuma
+
+-> 31.07.2023 Pazartesi
+
+                        Backing Fields
+
+Tablo içerisindeki kolonları entity classları içerisinde propertyler ile değil fieldlarla temsil etmemizi sağlar.
+
+class Person
+{
+    public int Id { get; set; }
+    public string Name { get => name.Substring(0, 3); set => name = value.Substring(0, 3); }
+}
+verileri eklerken yada getirirken kapsülleme de yapabiliriz bu şekilde
+
+
+    Backing Filed Attributes
+
+class Person
+{
+    public int Id { get; set; }
+    [BackingField(nameof(name))]
+    public string Name { get; set; }
+}
+
+
+    FluentAPI
+HasField metodu BackingFielda karşılık gelir.
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Person>()
+                .Property(p=p.Name)
+                .HasField(nameof(Person.name));
+}
+
+Field-Only-Properties
+Entitiylerde değerleri almak için propertyler yerine metotların kullanıldığı yada belirli alanların hiç gösterilmemesi gerektiği durumlarda
+kullanılabilir.
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Person>()
+                .Property(nameof(Person.name));
+}
+
+
+                    Shadow Properties
+
+Gösterilmesini istemediğimiz kolonları modellerken propertylerle göstermek istemeyiz.(örnek created date)
+Bu tip properylere shadow property denir. Yani Entity sınıflarında tanımlanmayan ancak EFCore tarafından var olarak kabul edilen propertylerdir.
+ChangeTracker Shadow propertyleri de takip eder.
+
+Foreign Key 
+
+Aslında foreign keyler de shadow propertydir. 2 Entity arasında ilişkiyi kurduktan sonra EFCoreun otomatik olarak foreign key oluşturuyor.
+Bunu entityde göstermesek de bu property oluşturulmuş olur ve yeri geldiği zaman kullanılabilir.
+
+Shadow Property Oluşturma
+
+FluentAPI ile oluşturulur.
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Person>()
+                .Property<DateTime>("CreatedTime");
+
+    base.OnModelCreating(modelBuilder);
+}
+
+Shadow Propertye Erişim Sağlama
+
+var person = await context.Persons.FirstAsync();
+var date = context.Entry(person).Property("Creeateddate");
+Console.WriteLine(data.CurrentValue);
+data.CurrentValue = DateTime.Now;
+await context.SaveChangesAsync();
+
+EF.Property İle Erişim Sağlama
+
+Özellikle LINQ sorgularında Shadow Propertylerine erişim için EF.Property static yapılanmasın kullanılır.
+
+var person = await context.Person.OrderBy(p => EF.Property<DateTime>(p, "CreatedDate")).ToListAsync();
+
+-> 31.07.2023 Pazartesi
  */
 
 
